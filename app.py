@@ -31,10 +31,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-def Clear_gpu():
-    device = cuda.get_current_device()
-    device.reset()
-    st.sidebar.success("**The GPU is cleared**")
+
 
 if __name__ == "__main__":
 
@@ -107,10 +104,12 @@ if __name__ == "__main__":
                     )
 
                 with space2:
-                    clear_GPu = st.button("Clear-GPU",
-                                          on_click=Clear_gpu())
+                    rest_gpu = st.button("Clear-GPU")
 
-            
+            if rest_gpu():
+                device = cuda.get_current_device()
+                device.reset()
+                st.sidebar.success("**The GPU is cleared**")
 
                 
             auto_enhance = st.checkbox("Auto Enhance", value=False)
