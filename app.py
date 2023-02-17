@@ -2,7 +2,6 @@ import streamlit as st
 from utils import functions as fn
 from utils.functions import *
 import tensorflow_hub as hub
-from numba import cuda 
 import os
 
 st.set_option("deprecation.showPyplotGlobalUse", False)
@@ -106,10 +105,7 @@ if __name__ == "__main__":
                 with space2:
                     rest_gpu = st.button("Clear-GPU")
 
-            if rest_gpu():
-                #device = cuda.get_current_device()
-                #device.reset()
-                st.sidebar.success("**The GPU is cleared**")
+
 
                 
             auto_enhance = st.checkbox("Auto Enhance", value=False)
