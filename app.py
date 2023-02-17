@@ -45,9 +45,8 @@ if __name__ == "__main__":
                     #file_details = {"FileName":uploaded_file.name,"FileType":uploaded_file.type}
                     with open(image_dir,"wb") as f:
                         f.write(uploaded_file.getbuffer())
-                    st.success("Saved File:{} to tempDir".format(uploaded_file.name))
+                    #st.success("Saved File:{} to tempDir".format(uploaded_file.name))
                     #bytes_data = uploaded_file.getvalue()
-                    
                     #st.write(bytes_data)
                     return fn.preprocess_image(image_dir)  # * the image is a tensor
 
@@ -85,7 +84,7 @@ if __name__ == "__main__":
                     enenchance_button = st.button("Enhance",)
                 
                 with space2:
-                    st.checkbox('Auto Enhance', value=False)
+                    auto_enhance = st.checkbox('Auto Enhance', value=False)
 
 
     with st.container():
@@ -102,15 +101,14 @@ if __name__ == "__main__":
         with enhanced:
             st.subheader("Enhanced image")
             if uploaded_file is not None:
-                if uploaded_file is not None:
-                    if enenchance_button:
-                        #st.write(prepared_img.shape)
-                        enhanced_img = fn.enhance_image(model, image)
-                        fig = fn.plot_image(enhanced_img, title="")
-                        st.image(enhanced_img)
-                        st.pyplot(fig)
-                        # st.write(enhanced_img.shape)
-                        # st.sidebar.success("**The image is enchanted**")
+                if enenchance_button or auto_enhance:
+                    #st.write(prepared_img.shape)
+                    enhanced_img = fn.enhance_image(model, image)
+                    fig = fn.plot_image(enhanced_img, title="")
+                    #st.image(enhanced_img)
+                    st.pyplot(fig)
+                    st.write(enhanced_img.shape)
+                    st.sidebar.success("**The image is enchanted**")
                 else:
                     st.sidebar.warning("**Enhance to see results**")
                     
