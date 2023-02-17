@@ -3,6 +3,7 @@ from utils import functions as fn
 from utils.functions import *
 import tensorflow_hub as hub
 import os
+st.set_option('deprecation.showPyplotGlobalUse', False)
 
 
 st.set_page_config(
@@ -41,7 +42,13 @@ if __name__ == "__main__":
                 def uploade_image():
                     directory = os.getcwd()
                     image_dir = os.path.join(directory, uploaded_file.name)
-                    # st.write(image_dir)
+                    #file_details = {"FileName":uploaded_file.name,"FileType":uploaded_file.type}
+                    with open(image_dir,"wb") as f:
+                        f.write(uploaded_file.getbuffer())
+                    st.success("Saved File:{} to tempDir".format(uploaded_file.name))
+                    #bytes_data = uploaded_file.getvalue()
+                    
+                    #st.write(bytes_data)
                     return fn.preprocess_image(image_dir)  # * the image is a tensor
 
                 if uploaded_file is not None:
