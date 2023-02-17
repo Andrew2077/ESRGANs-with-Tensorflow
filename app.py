@@ -2,8 +2,10 @@ import streamlit as st
 from utils import functions as fn
 from utils.functions import *
 import tensorflow_hub as hub
+from numba import cuda 
 import os
-st.set_option('deprecation.showPyplotGlobalUse', False)
+
+st.set_option("deprecation.showPyplotGlobalUse", False)
 
 
 st.set_page_config(
@@ -13,6 +15,26 @@ st.set_page_config(
     initial_sidebar_state="auto",
 )
 
+st.markdown(
+    """<style>
+        .element-container:nth-of-type(1) button {
+            height: 2em;
+            margin: 0em 0em 0em 0em;
+            padding: 0.1em 1em 0.1em 1em;
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .element-container:nth-of-type(1) div {
+            colro: red;
+        }
+        </style>""",
+    unsafe_allow_html=True,
+)
+
+def Clear_gpu():
+    device = cuda.get_current_device()
+    device.reset()
+    st.sidebar.success("**The GPU is cleared**")
 
 if __name__ == "__main__":
 
@@ -42,12 +64,12 @@ if __name__ == "__main__":
                 def uploade_image():
                     directory = os.getcwd()
                     image_dir = os.path.join(directory, uploaded_file.name)
-                    #file_details = {"FileName":uploaded_file.name,"FileType":uploaded_file.type}
-                    with open(image_dir,"wb") as f:
+                    # file_details = {"FileName":uploaded_file.name,"FileType":uploaded_file.type}
+                    with open(image_dir, "wb") as f:
                         f.write(uploaded_file.getbuffer())
-                    #st.success("Saved File:{} to tempDir".format(uploaded_file.name))
-                    #bytes_data = uploaded_file.getvalue()
-                    #st.write(bytes_data)
+                    # st.success("Saved File:{} to tempDir".format(uploaded_file.name))
+                    # bytes_data = uploaded_file.getvalue()
+                    # st.write(bytes_data)
                     return fn.preprocess_image(image_dir)  # * the image is a tensor
 
                 if uploaded_file is not None:
@@ -55,7 +77,6 @@ if __name__ == "__main__":
                 else:
                     image = None
                     # st.write("## **Please upload an image**")
-                
 
             ##SLiders
             with st.container():
@@ -77,15 +98,36 @@ if __name__ == "__main__":
                 )
 
             ##Button
-            #with st.container():
+            # with st.container():
             with st.empty():
-                space1 , space2 = st.columns(2)
+                space1, space2 = st.columns(2)
                 with space1:
-                    enenchance_button = st.button("Enhance",)
-                
-                with space2:
-                    auto_enhance = st.checkbox('Auto Enhance', value=False)
+                    enhance_button = st.button(
+                        "Enhance",
+                    )
 
+                with space2:
+                    clear_GPu = st.button("Clear-GPU",
+                                          on_click=Clear_gpu())
+
+            
+
+                
+            auto_enhance = st.checkbox("Auto Enhance", value=False)
+            if auto_enhance:
+                st.markdown(
+                    """<style>
+                        .element-container:nth-of-type(5) div {
+                            color: green;;  })""",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    """<style>
+                        .element-container:nth-of-type(5) div {
+                            color: red;;  })""",
+                    unsafe_allow_html=True,
+                )
 
     with st.container():
         uploaded, enhanced = st.columns(2)
@@ -101,15 +143,14 @@ if __name__ == "__main__":
         with enhanced:
             st.subheader("Enhanced image")
             if uploaded_file is not None:
-                if enenchance_button or auto_enhance:
-                    #st.write(prepared_img.shape)
-                    enhanced_img = fn.enhance_image(model, image)
-                    fig = fn.plot_image(enhanced_img, title="")
-                    #st.image(enhanced_img)
-                    st.pyplot(fig)
-                    st.write(enhanced_img.shape)
-                    st.sidebar.success("**The image is enchanted**")
+                if enhance_button or auto_enhance:
+                    # st.write(prepared_img.shape)
+                    with st.spinner('Enhancing the image...'):
+                        enhanced_img = fn.enhance_image(model, image)
+                        fig = fn.plot_image(enhanced_img, title="")
+                        # st.image(enhanced_img)
+                        st.pyplot(fig)
+                        st.write(enhanced_img.shape)
+                        st.sidebar.success("**The image is enchanted**")
                 else:
                     st.sidebar.warning("**Enhance to see results**")
-                    
-        
