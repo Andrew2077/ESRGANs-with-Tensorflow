@@ -107,8 +107,8 @@ if __name__ == "__main__":
                     rest_gpu = st.button("Clear-GPU")
 
             if rest_gpu():
-                device = cuda.get_current_device()
-                device.reset()
+                #device = cuda.get_current_device()
+                #device.reset()
                 st.sidebar.success("**The GPU is cleared**")
 
                 
