@@ -39,19 +39,23 @@ def preprocess_image(Image_path: str) -> tf.Tensor:
 
 
 ## Save the img
-def save_image(image, filename,):
+def save_image(
+    image: Image,
+    filename: str,
+):
     # * if the image is not an image, convert it to PIL image and save it with pillow
     if not isinstance(image, Image.Image):
         # * clip the image to be between 0 and 255
         image = tf.clip_by_value(image, 0, 255)
         # * convert the image to uint8
-        image = Image.fromarray(tf.cast(image, tf.uint8).numpy()) 
+        image = Image.fromarray(tf.cast(image, tf.uint8).numpy())
         image.save(fp=filename + ".jpg", format="JPEG")
 
 
-
 ## plotting the images
-def plot_image(image: tf.Tensor, title: str = "", streamlit: bool=False) -> plt.figure or None:
+def plot_image(
+    image: tf.Tensor, title: str = "", streamlit: bool = False
+) -> plt.figure or None:
     fig = plt.figure()
     image = np.asarray(image)
     image = tf.clip_by_value(image, 0, 255)

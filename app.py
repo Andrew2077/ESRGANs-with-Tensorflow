@@ -1,23 +1,26 @@
 import streamlit as st
-from utils import functions as fn
-from utils.functions import *
+from utils import Tensorflow_part as fn
+from utils.Torch_Part import *
+from utils.Tensorflow_part import *
 import tensorflow_hub as hub
 import os
 
 
 st.set_option("deprecation.showPyplotGlobalUse", False)
 
+
 def _local_deBuffer():
-     global new_image_uploaded 
-     new_image_uploaded = False
+    global new_image_uploaded
+    new_image_uploaded = False
 
 
 def callbacks():
-     global new_image_uploaded 
-     st.cache_data.clear()
-     if (os.path.exists(os.path.join(os.getcwd(), "enhanced_image.jpg"))):
+    global new_image_uploaded
+    st.cache_data.clear()
+    if os.path.exists(os.path.join(os.getcwd(), "enhanced_image.jpg")):
         os.remove(os.path.join(os.getcwd(), "enhanced_image.jpg"))
-     new_image_uploaded = True
+    new_image_uploaded = True
+
 
 @st.cache_resource()
 def tf_better_memory():
@@ -58,7 +61,9 @@ if __name__ == "__main__":
         SAVE_MODEL_PATH = "https://tfhub.dev/captain-pool/esrgan-tf2/1"
         return hub.load(SAVE_MODEL_PATH)
     
- 
+    @st.cache_resource()
+    def loade_model_torch(scale):
+        return torch.load(f"models/RealESRGAN_x{scale}.pt", map_location=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
 
     model_loader = st.checkbox("load model", value=False)
     if model_loader:
@@ -78,14 +83,20 @@ if __name__ == "__main__":
                     ":red[Upload an Image]",
                     type=["jpg", "png"],
                     label_visibility="visible",
-                    on_change=callbacks()
+                    on_change=callbacks(),
                 )
-                selected_model = st.selectbox("Select a model", ["ESRGAN_x4_TF", 'RealESRGAN_x2', 'RealESRGAN_x4', 'RealESRGAN_x8'])
+                selected_model = st.selectbox(
+                    "Select a model",
+                    ["ESRGAN_x4_TF", "RealESRGAN_x2", "RealESRGAN_x4", "RealESRGAN_x8"],
+                    index=1,
+                    key="model",
+                )
                 # if model_loader == 'ESRGAN_x4_TF':
                 st.sidebar.success(f"**{selected_model} is loaded**")
-                
+                if selected_model == "RealESRGAN_x2":
+                    model = loade_model_torch(2)
 
-            ##SLiders
+                ##SLiders
                 @st.cache_data()
                 def uploade_image():
                     directory = os.getcwd()
@@ -93,26 +104,35 @@ if __name__ == "__main__":
                     with open(image_dir, "wb") as f:
                         f.write(uploaded_file.getbuffer())
                     new_image_uploaded = True
-                    return fn.preprocess_image(image_dir), new_image_uploaded  # * the image is a tensor
+                    return (
+                        fn.preprocess_image(image_dir),
+                        new_image_uploaded,
+                        image_dir,
+                    )  # * the image is a tensor
 
                 if uploaded_file is not None:
-                    image, new_image_uploaded = uploade_image()
-                    #enhanced_img = enhance_img_streamlit()
+                    if selected_model == "ESRGAN_x4_TF":
+                        image, new_image_uploaded = uploade_image()
+                    else:
+                        _, new_image_uploaded, image_dir = uploade_image()
+                        image = Image.open(image_dir)
+                    # enhanced_img = enhance_img_streamlit()
                 else:
                     image = None
                     enhanced_img = None
-                    #new_image_uploaded = False
+                    image_dir = None
+                    # new_image_uploaded = False
                     # st.write("## **Please upload an image**")
-                    
+
             ##Button
-            
+
             with st.empty() as k:
                 space1, space2 = st.columns(2)
                 with space1:
                     enhance_button = st.button(
                         "Enhance",
                         key="enhance",
-                        #on_click=_local_deBuffer()
+                        # on_click=_local_deBuffer()
                     )
                 with space2:
                     if uploaded_file is None:
@@ -142,26 +162,36 @@ if __name__ == "__main__":
                 fig = fn.plot_image(image, title="")
                 st.pyplot(fig)
                 st.write(image.shape)
+                    
             else:
                 st.write("**Please upload an image**")
-                
 
-        
         with enhanced:
             st.subheader("Enhanced image")
             if uploaded_file is not None:
+
                 @st.cache_data()
-                def enhance_img_streamlit():
-                    return fn.enhance_image(model,image)
-                
+                def enhance_img_Tensorflow():
+                    return fn.enhance_image(model, image)
+                @st.cache_data()
+                def enhance_img_Torch():
+                    return model.predict(image) # Pil Image
+                    
+
                 if enhance_button or auto_enhance:
                     # st.write(prepared_img.shape)
                     with st.spinner("Enhancing the image..."):
-                        enhanced_img = enhance_img_streamlit()
-                        save_image(enhanced_img, filename="enhanced_image")
-            
-            
-            if (os.path.exists(os.path.join(os.getcwd(), "enhanced_image.jpg"))) and (new_image_uploaded is True):
+                        if selected_model == "ESRGAN_x4_TF":
+                            enhanced_img = enhance_img_Tensorflow()
+                            save_image(enhanced_img, filename="enhanced_image")
+                        else:
+                            enhance_image = enhance_img_Torch()
+                            #* pil image to tensor
+                            enhance_image = pil_to_tensor(enhance_image)
+
+            if (os.path.exists(os.path.join(os.getcwd(), "enhanced_image.jpg"))) and (
+                new_image_uploaded is True
+            ):
                 enhanced_img = Image.open("enhanced_image.jpg")
                 fig = fn.plot_image(enhanced_img, title="")
                 st.pyplot(fig)
