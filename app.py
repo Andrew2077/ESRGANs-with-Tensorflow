@@ -112,7 +112,7 @@ if __name__ == "__main__":
 
                 if uploaded_file is not None:
                     if selected_model == "ESRGAN_x4_TF":
-                        image, new_image_uploaded = uploade_image()
+                        image, new_image_uploaded, image_dir = uploade_image()
                     else:
                         _, new_image_uploaded, image_dir = uploade_image()
                         image = Image.open(image_dir)
